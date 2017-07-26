@@ -4,7 +4,7 @@ Description: >-
   AWS Git Codepipeline
 
 Resources:
-  GitPipelineLambda:
+  PipelineLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: './git-pipeline'
@@ -14,10 +14,10 @@ Resources:
       Timeout: 30
       Role:
         Fn::GetAtt:
-          - "GitPipelineLambdaRole"
+          - "PipelineLambdaRole"
           - "Arn"
 
-  GitPipelineLambdaRole:
+  PipelineLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
       ManagedPolicyArns:
@@ -36,7 +36,7 @@ Resources:
             Action:
               - "sts:AssumeRole"
 
-  GitWebhookLambda:
+  WebhookLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: './git-webhook'
@@ -46,7 +46,7 @@ Resources:
       Timeout: 30
       Role:
         Fn::GetAtt:
-          - "GitWebhookLambdaRole"
+          - "WebhookLambdaRole"
           - "Arn"
       Events:
         PutResource:
@@ -55,7 +55,7 @@ Resources:
             Path: '/{proxy+}'
             Method: ANY
 
-  GitWebhookLambdaRole:
+  WebhookLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
       ManagedPolicyArns:
