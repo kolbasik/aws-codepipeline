@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: 'AWS::Serverless-2016-10-31'
+Description: >-
+  AWS Git Codepipeline
+
+Resources:
+  GitPipelineLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: './git-pipeline'
+      Runtime: 'nodejs6.10'
+      Handler: 'index.handler'
+      MemorySize: 256
+      Timeout: 30
+      Role:
+        Fn::GetAtt:
+          - "GitPipelineLambdaRole"
+          - "Arn"
+
+  GitPipelineLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
+        - "arn:aws:iam::aws:policy/AWSCodePipelineFullAccess"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+                - "s3.amazonaws.com"
+                - "codepipeline.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+
+  GitWebhookLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: './git-webhook'
+      Runtime: 'nodejs6.10'
+      Handler: 'index.handler'
+      MemorySize: 256
+      Timeout: 30
+      Role:
+        Fn::GetAtt:
+          - "GitWebhookLambdaRole"
+          - "Arn"
+      Events:
+        PutResource:
+          Type: Api
+          Properties:
+            Path: '/{proxy+}'
+            Method: ANY
+
+  GitWebhookLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
+        - "arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+                - "codebuild.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
