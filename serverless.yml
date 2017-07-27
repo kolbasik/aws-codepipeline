@@ -4,9 +4,10 @@ Description: >-
   AWS Git Codepipeline
 
 Resources:
-  PipelineLambda:
+  GithubPipelineLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
+      FunctionName: 'github-pipeline-lambda'
       CodeUri: './git-pipeline'
       Runtime: 'nodejs6.10'
       Handler: 'index.handler'
@@ -14,12 +15,13 @@ Resources:
       Timeout: 30
       Role:
         Fn::GetAtt:
-          - "PipelineLambdaRole"
+          - "GithibPipelineLambdaRole"
           - "Arn"
 
-  PipelineLambdaRole:
+  GithibPipelineLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: 'github-pipeline-role'
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
         - "arn:aws:iam::aws:policy/AWSCodePipelineFullAccess"
@@ -36,9 +38,10 @@ Resources:
             Action:
               - "sts:AssumeRole"
 
-  WebhookLambda:
+  GithubWebhookLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
+      FunctionName: 'github-webhook-lambda'
       CodeUri: './git-webhook'
       Runtime: 'nodejs6.10'
       Handler: 'index.handler'
@@ -46,18 +49,19 @@ Resources:
       Timeout: 30
       Role:
         Fn::GetAtt:
-          - "WebhookLambdaRole"
+          - "GithubWebhookLambdaRole"
           - "Arn"
       Events:
         PutResource:
           Type: Api
           Properties:
-            Path: '/{proxy+}'
+            Path: '{proxy+}'
             Method: ANY
 
-  WebhookLambdaRole:
+  GithubWebhookLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: 'github-webhook-role'
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
         - "arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess"

@@ -25,20 +25,28 @@ exports.handler = (event, context, callback) => {
     };
 
     try {
-        if (event.httpMethod !== "POST") {
-            return done(new Error('It only accepts POST request.'));
+        const params = Object.assign({
+            projectName: null
+        }, event.stageVariables, event.queryStringParameters);
+
+        if (event.httpMethod === 'GET') {
+            return done(null, params);
         }
+        if (event.httpMethod !== 'POST') {
+            return done(new Error('It only accepts GET and POST requests.'));
+        }
+
         var body = JSON.parse(event.body);
         console.log('Received body:', JSON.stringify(body, null, 2));
 
         if (body.deleted) {
-            return done(null, { message: '[SKIP] the git branch is deleted' });
+            return done(null, { status: 'skip', message: 'the git branch is deleted' });
         }
         if (!body.base_ref && !body.ref) {
-            return done(null, { message: "[SKIP] it's not a commit." });
+            return done(null, { status: 'skip', message: 'it is not a commit.' });
         }
         var buildParams = {
-            projectName: event.queryStringParameters.projectName || body.repository.name,
+            projectName: params.projectName || body.repository.name,
             sourceVersion: (body.base_ref || body.ref).substr(11)
         };
         console.log('Build parameters:', JSON.stringify(buildParams, null, 2))
